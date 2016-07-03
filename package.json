@@ -1,6 +1,6 @@
 {
   "name": "ultimate-descriptor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Powerful tool to work with descriptors",
   "main": "index.js",
   "scripts": {
