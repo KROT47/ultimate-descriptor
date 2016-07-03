@@ -3,8 +3,6 @@
 
 const Extend = require( 'extend' );
 
-const Prototypes = require( '../prototypes' );
-
 
 /* ------------------------------ Module Exports ------------------------------ */
 
@@ -312,25 +310,6 @@ Object.defineProperties( Descriptor.prototype, {
 });
 
 
-/* --------------------------------- EachObjDescriptor --------------------------------- */
-
-/**
- * 
- * @param (Object) obj
- * @param (String|Number) prop
- * @param (Object) defaultDescriptor
- * @return (Object|undefined)
- */
-// function EachObjDescriptor( obj, prop, defaultDescriptor ) {
-// 	var allProps = Object.getOwnPropertyNames( obj ),
-// 		prop;
-
-// 	for ( var i = allProps.length; i--; ) {
-// 		prop = allProps[ i ];
-// 	}
-// };
-
-
 /* --------------------------------- GetDescriptor --------------------------------- */
 
 /**
@@ -343,13 +322,13 @@ Object.defineProperties( Descriptor.prototype, {
 function GetDescriptor( obj, prop, defaultDescriptor ) {
 	var descriptor;
 
-	try { // for objects in parent window
+	try {
 		descriptor = Object.getOwnPropertyDescriptor( obj, prop );
 	} catch ( e ) {
 		descriptor = defaultDescriptor;
 	}
 
-	return Descriptor( descriptor ).for( prop );
+	return descriptor === undefined ? undefined : Descriptor( descriptor ).for( prop );
 };
 
 
@@ -385,43 +364,3 @@ function GetDescriptor( obj, prop, defaultDescriptor ) {
 
 	return arguments[ 0 ] instanceof Descriptor ? result : arguments[ 0 ];
 };
-
-
-/* --------------------------------- Helpers --------------------------------- */
-
-// function cloneHiddenProperties( obj, clone ) {
-// 	var props, prop, descriptor;
-	
-// 	while ( obj ) {
-
-// 		props = Object.getOwnPropertyNames( obj );
-
-// 		for ( var i = props.length; i--; ) {
-// 			prop = props[ i ];
-
-// 			descriptor = Object.getOwnPropertyDescriptor( obj, prop );
-
-// 			// if ( clone[ prop ] === undefined )
-// 		}
-
-// 		obj = Object.getPrototypeOf( obj );
-
-// 		if ( obj === Object ) break;
-// 	}
-// }
-
-// function simpleExtend( obj ) {
-// 	var newObj = {}, props = Object.keys( obj ), prop;
-
-// 	for ( var i = props.length; i--; ) {
-// 		prop = props[ i ];
-
-// 		if ( typeof obj[ prop ] == 'object' ) {
-// 			newObj[ prop ] = simpleExtend( obj[ prop ] );
-// 		} else {
-// 			newObj[ prop ] = obj[ prop ];
-// 		}
-// 	}
-
-// 	return newObj;
-// }

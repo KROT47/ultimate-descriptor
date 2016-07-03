@@ -15,6 +15,9 @@
   ],
   "author": "KROT47",
   "license": "ISC",
+  "dependencies": {
+    "extend": "^3.0.0"
+  },
   "bugs": {
     "url": "https://github.com/KROT47/ultimate-descriptor/issues"
   },
