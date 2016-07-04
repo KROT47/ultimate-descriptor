@@ -8,7 +8,18 @@ Allows to create object connections of high complexity using generators
 ```js
 const Descriptor = require( 'ultimate-descriptor' );
 
-// Descriptor( {descriptor|Object|Descriptor}[, {originObj|Object}] ) => {Descriptor}
+/* ------------ Tools ------------- */
+
+// Descriptor( {descriptor:Object|Descriptor}[, {originObj:Object}, {originProp:String}] ) => {Descriptor}
+
+// Descriptor.get( {obj:Object}, {prop:String}[, {returnDescriptor:Boolean}] ) => {Object|Descriptor|undefined}
+
+// Descriptor.extend( {descriptor1:Object|Descriptor}[, ...] ) => {Object|Descriptor}
+
+// Descriptor.generator( {generatorFunc:Function} ) => {Generator}
+
+
+/* ------------ Example vars ------------- */
 
 var obj1 = { _phrase: 'Hello' },
     obj2 = { _phrase: 'Goodbye' };
