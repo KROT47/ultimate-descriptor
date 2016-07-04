@@ -26,10 +26,10 @@ Object.defineProperties( obj1, {
 
 /* ------------ Simple usage ------------- */
 
-var descriptor = Descriptor.get( obj1, 'phrase' ).for( obj2 );
+var descriptor = Descriptor.get( obj1, 'phrase' );
 
 console.log( obj2.phrase );           // undefined
-console.log('>>',descriptor);
+
 descriptor.assignTo( obj2, 'phrase' );
 
 console.log( obj2.phrase );           // Goodbye

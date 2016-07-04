@@ -91,7 +91,7 @@ runTest = TestSeries( function conditions() {
 	var descriptor = new Descriptor();
 
 	descriptor = Descriptor( descriptorWithGetSet, originObj )
-	
+
 	return descriptor.asProxy().assignTo( newObj, 'phrase' );
 });
 
@@ -116,3 +116,39 @@ runTest( function ( descriptor ) {
 
 
 console.log( 'Done!' );
+
+
+var obj1 = { _phrase: 'Hello' },
+    obj2 = { _phrase: 'Goodbye' };
+
+Object.defineProperties( obj1, {
+  say: { value: function () { return this.phrase } },
+
+  phrase: {
+    get: function () { return this._phrase },
+    set: function ( value ) { this._phrase = value },
+    configurable: true
+  }
+});
+
+
+/* ------------ Simple usage ------------- */
+
+var descriptor = Descriptor.get( obj1, 'phrase' );
+
+console.log( obj2.phrase );           // undefined
+
+descriptor.assignTo( obj2, 'phrase' );
+
+console.log( obj2.phrase );           // Goodbye
+
+descriptor
+  .extend( { get: function () { return this._phrase + ' world!' } } )
+  .extend( Descriptor( { set: function ( value ) { this._phrase = value + ' mighty' } } ) )
+  .assignTo( obj2, 'phrase' );
+
+console.log( obj2.phrase );           // Goodbye world!
+
+obj2.phrase = 'Hello';
+
+console.log( obj2.phrase );           // Hello mighty world!
