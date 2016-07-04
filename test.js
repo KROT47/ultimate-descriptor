@@ -9,7 +9,7 @@ const Descriptor = require( './' );
 var originObj, newObj, newSimpleObj;
 
 var descriptorWithValue, descriptorWithGetSet;
-// var simpleDescriptor;
+
 var runTest;
 
 function initTest() {
@@ -26,24 +26,25 @@ function initTest() {
 	});
 
 	newObj = {};
-	// newSimpleObj = {};
-
-	// simpleDescriptor = { value: function () { return ' world!' } };
 
 	descriptorWithValue = {
-		value: function ( originValue, originObj, propName ) {
+		value: Descriptor.generator( function ( originValue, objProp, originObj, originProp ) {
 			return function () { return originValue.apply( originObj, arguments ) + ' world!' }
-		}
+		}),
+		configurable: true
 	};
 
-	descriptorWithGetSet = {
-		get: function ( originGet, originObj, propName ) {
+	descriptorWithGetSet = Descriptor.generator({
+		get: function ( originGet, objProp, originObj, originProp ) {
 			return function () { return originGet.call( originObj ) + ' world!' }
 		},
-		set: function ( originSet, originObj, propName ) {
+		set: function ( originSet, objProp, originObj, originProp ) {
 			return function ( value ) { originSet.call( originObj, value + ' mighty' ) }
-		}
-	};
+		},
+		configurable: function ( originConfigurable, objProp, originObj, originProp ) {
+	      return originConfigurable !== undefined ? !originConfigurable : true
+	    }
+	});
 }
 
 
@@ -62,19 +63,19 @@ function TestSeries( conditions ) {
 runTest = TestSeries( function conditions() {
 	var descriptor = Descriptor( descriptorWithValue, originObj );
 
-	return descriptor.assignTo( newObj, 'say' );
+	return descriptor.for( 'say' ).assignTo( newObj, 'talk' );
 
 });
 
-
 runTest( function ( descriptor ) {
-	console.assert( newObj.say() == 'Hello world!', 'Property was not generated properly' );
+
+	console.assert( newObj.talk() == 'Hello world!', 'Property was not generated properly' );
 });
 
 runTest( function ( descriptor ) {
 	originObj._phrase = 'Goodbye';
 
-	console.assert( newObj.say() == 'Hello world!', 'Not proxied originObj influence generated property' );
+	console.assert( newObj.talk() == 'Hello world!', 'Not proxied originObj influence generated property' );
 });
 
 runTest( function ( descriptor ) {
@@ -89,10 +90,8 @@ runTest = TestSeries( function conditions() {
 	
 	var descriptor = new Descriptor();
 
-	descriptor.setProp( 'get', descriptorWithGetSet.get, originObj );
-	descriptor.setProp( 'set', descriptorWithGetSet.set, originObj );
-	// or equal: descriptor = Descriptor( descriptorWithGetSet, originObj )
-
+	descriptor = Descriptor( descriptorWithGetSet, originObj )
+	
 	return descriptor.asProxy().assignTo( newObj, 'phrase' );
 });
 
@@ -112,39 +111,8 @@ runTest( function ( descriptor ) {
 	console.assert( newObj.phrase == 'Hello world!', 'Generation for get property failed' );
 });
 
-runTest( function ( descriptor ) {
-	var clone = descriptor.clone();
 
-	check( descriptor, clone );
-	check( clone, descriptor );
 
-	function check( obj, clone, innerLoop ) {
-		for ( var i in clone ) {
-			if ( typeof clone[ i ] == 'object' ) {
-				if ( innerLoop ) {
-					console.assert( obj[ i ] === clone[ i ], 'Cloning failed', obj[ i ], clone[ i ] );
-				} else {
-					check( obj[ i ], clone[ i ], true );
-				}
-			} else {
-				console.assert( obj[ i ] == clone[ i ], 'Cloning failed', obj[ i ], clone[ i ] );
-			}
-		}
-	}
-});
 
-// t = Descriptor({
-// 	get: function ( baseGet, obj ) {
-// 		return function () {
-// 			return 123;
-// 		}
-// 	}
-// });
-// console.log(t.get.toString());
-// console.log(t.getProp( 'get' ).toString());
-// console.log(t.__proto__);
-// console.log(t.getProp( '__proto__' ));
-// t.setProp( '__proto__', { a: 123 } );
-// console.log(t.getProp( '__proto__' ));
 
 console.log( 'Done!' );
