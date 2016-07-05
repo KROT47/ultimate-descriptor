@@ -398,10 +398,10 @@ Object.defineProperties( Descriptor.prototype, {
  * Returns object property descriptor or defaultDescriptor if defined
  * @param (Object) obj
  * @param (String|Number) prop
- * @param (Boolean) returnDescriptor - if true Descriptor will be returned else Object
+ * @param (Boolean) returnObject - if true Object will be returned else Descriptor
  * @return (Object|Descriptor|undefined)
  */
-function GetDescriptor( obj, prop, returnDescriptor ) {
+function GetDescriptor( obj, prop, returnObject ) {
     var descriptor;
 
     try {
@@ -420,7 +420,7 @@ function GetDescriptor( obj, prop, returnDescriptor ) {
 
     if ( descriptor === undefined ) return undefined;
 
-    return returnDescriptor ? Descriptor( descriptor ).for( prop ) : descriptor;
+    return returnObject ? descriptor : Descriptor( descriptor ).for( prop );
 }
 
 
