@@ -425,7 +425,7 @@ function GetDescriptor( obj, prop, returnObject ) {
 
     if ( descriptor === undefined ) return undefined;
 
-    return returnObject ? descriptor : Descriptor( descriptor ).for( prop );
+    return returnObject ? descriptor : Descriptor( descriptor ).for( obj, prop );
 }
 
 
