@@ -72,19 +72,19 @@ console.log( obj2.phrase );           // Hello mighty world!
 // Descriptor.generator can be used on whole descriptor or on any property
 
 var valueSayDescriptor = {
-    value: Descriptor.generator( function ( originValue, objProp, originObj, originProp ) {
+    value: Descriptor.generator( function ( originValue, originObj, originProp, objProp ) {
       return function () { return originValue.apply( originObj, arguments ) + ' world!' }
     }).for( 'say' ), // defining descriptor generator using property 'say' of some object
     configurable: true
   },
   getSetDescriptor = Descriptor.generator( {
-    get: function ( originGet, objProp, originObj, originProp ) {
+    get: function ( originGet, originObj, originProp, objProp ) {
       return function () { return originGet.call( originObj ) + ' world!' }
     },
-    set: function ( originSet, objProp, originObj, originProp ) {
+    set: function ( originSet, originObj, originProp, objProp ) {
       return function ( value ) { originSet.call( originObj, value + ' mighty' ) }
     },
-    configurable: function ( originConfigurable, objProp, originObj, originProp ) {
+    configurable: function ( originConfigurable, originObj, originProp, objProp ) {
       return originConfigurable !== undefined ? !originConfigurable : true
     }
   });

@@ -329,7 +329,7 @@ Object.defineProperties( Descriptor.prototype, {
                 originDescriptorProp = originDescriptor && originDescriptor[ prop ],
                 generatorFunc = this.getProp( prop, true ).valueOf();
 
-            return generatorFunc( originDescriptorProp, objProp, originObj, originProp );
+            return generatorFunc( originDescriptorProp, originObj, originProp, objProp );
         }
     },
 

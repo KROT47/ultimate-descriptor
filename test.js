@@ -28,20 +28,20 @@ function initTest() {
 	newObj = {};
 
 	descriptorWithValue = {
-		value: Descriptor.generator( function ( originValue, objProp, originObj, originProp ) {
+		value: Descriptor.generator( function ( originValue, originObj, originProp, objProp ) {
 			return function () { return originValue.apply( originObj, arguments ) + ' world!' }
 		}),
 		configurable: true
 	};
 
 	descriptorWithGetSet = Descriptor.generator({
-		get: function ( originGet, objProp, originObj, originProp ) {
+		get: function ( originGet, originObj, originProp, objProp ) {
 			return function () { return originGet.call( originObj ) + ' world!' }
 		},
-		set: function ( originSet, objProp, originObj, originProp ) {
+		set: function ( originSet, originObj, originProp, objProp ) {
 			return function ( value ) { originSet.call( originObj, value + ' mighty' ) }
 		},
-		configurable: function ( originConfigurable, objProp, originObj, originProp ) {
+		configurable: function ( originConfigurable, originObj, originProp, objProp ) {
 	      return originConfigurable !== undefined ? !originConfigurable : true
 	    }
 	});
