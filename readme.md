@@ -10,12 +10,19 @@ const Descriptor = require( 'ultimate-descriptor' );
 
 /* ------------ Tools ------------- */
 
+// returns new Descriptor object
 // Descriptor( {descriptor:Object|Descriptor}[, {originObj:Object}, {originProp:String}] ) => {Descriptor}
 
+// extracts descriptor form object
 // Descriptor.get( {obj:Object}, {prop:String}[, {returnDescriptor:Boolean}] ) => {Object|Descriptor|undefined}
 
+// extends descriptor with others
 // Descriptor.extend( {descriptor1:Object|Descriptor}[, ...] ) => {Object|Descriptor}
 
+// converts object with property descriptors to result object
+// Descriptor.toObject( {propDescriptors:Object} ) => {Object}
+
+// returns generator for descriptor property
 // Descriptor.generator( {generatorFunc:Function} ) => {Generator}
 
 

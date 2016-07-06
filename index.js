@@ -16,6 +16,8 @@ module.exports.extend = ExtendDescriptor;
 
 module.exports.generator = CreateGenerator;
 
+module.exports.toObject = DescriptorToObject;
+
 
 /* --------------------------------- Descriptor --------------------------------- */
 
@@ -66,6 +68,9 @@ Object.defineProperties( Descriptor.prototype, {
     assignTo: {
         value: function ( obj, objProp ) {
             this.setObjProp( objProp );
+
+            // if originObj is not defined - use obj
+            if ( !this.getOriginObj() ) this.setOriginObj( obj );
 
             // if originProp is not defined - use objProp
             if ( !this.getOriginProp() ) this.setOriginProp( objProp );
@@ -496,6 +501,20 @@ function _extendSimple() {
     }
 
     return result;
+}
+
+
+/* --------------------------------- DescriptorToObject --------------------------------- */
+
+/**
+ * Runs Object.defineProperties on new object and returns this object
+ * @param (Object) propDescriptors
+ * @return (Object)
+ */
+function DescriptorToObject( propDescriptors ) {
+    var obj = {};
+    Object.defineProperties( obj, propDescriptors );
+    return obj;
 }
 
 
