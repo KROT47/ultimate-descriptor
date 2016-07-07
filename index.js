@@ -88,7 +88,9 @@ Object.defineProperties( Descriptor.prototype, {
      */
     for: {
         value: function ( originObj, originProp ) {
-            if ( typeof originObj != 'object' ) {
+            var type = typeof originObj;
+
+            if ( [ 'object', 'function' ].indexOf( type ) == -1 ) {
                 originProp = originObj;
                 originObj = null;
             }
@@ -210,7 +212,9 @@ Object.defineProperties( Descriptor.prototype, {
      */
     setOriginObj: {
         value: function ( prop, originObj ) {
-            if ( typeof prop == 'object' ) {
+            var type = typeof prop;
+
+            if ( [ 'object', 'function' ].indexOf( type ) != -1 ) {
                 originObj = prop;
                 prop = null;
             }
