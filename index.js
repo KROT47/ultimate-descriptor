@@ -561,11 +561,11 @@ function getterDescriptor( prop ) {
 // fixing descriptor properties conflicts after extend
 function fixConflicts( descriptor, prop ) {
     if ( prop == 'value' ) {
-        delete descriptor.__descriptor.get;
-        delete descriptor.__descriptor.set;
+        delete descriptor.get;
+        delete descriptor.set;
 
     } else if ( prop == 'get' || prop == 'set' ) {
-        delete descriptor.__descriptor.value;
-        delete descriptor.__descriptor.writable;
+        delete descriptor.value;
+        delete descriptor.writable;
     }
 }
