@@ -3,6 +3,7 @@
 // 1. get/set -> value replacement
 // 2. passing own properties to generator
 
+
 /* --------------------------------- Required Modules --------------------------------- */
 
 const Extend = require( 'extend' );
