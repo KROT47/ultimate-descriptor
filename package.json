@@ -1,6 +1,6 @@
 {
   "name": "ultimate-descriptor",
-  "version": "1.0.11",
+  "version": "1.1.0",
   "description": "Powerful tool to work with descriptors",
   "main": "index.js",
   "scripts": {
@@ -16,7 +16,7 @@
   "author": "KROT47",
   "license": "ISC",
   "dependencies": {
-    "abstract-value": "^1.0.4",
+    "abstract-value": "^2.0.1",
     "extend": "^3.0.0"
   },
   "bugs": {

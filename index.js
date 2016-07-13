@@ -1,9 +1,13 @@
 
+// TODO:
+// 1. get/set -> value replacement
+// 2. passing own properties to generator
+
 /* --------------------------------- Required Modules --------------------------------- */
 
 const Extend = require( 'extend' );
 
-const Generator = require( 'abstract-value' );
+const Generator = require( 'abstract-value' )( 'Generator' );
 
 
 /* ------------------------------ Module Exports ------------------------------ */
