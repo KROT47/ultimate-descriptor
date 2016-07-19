@@ -22,8 +22,16 @@ const Descriptor = require( 'ultimate-descriptor' );
 // converts object with property descriptors to result object
 // Descriptor.toObject( {propDescriptors:Object} ) => {Object}
 
-// returns generator for descriptor property
+// Returns object clone where all properties are defined via origin object's descriptors
+// Descriptor.clone( {obj:Object} ) => {Object}
+
+// returns generator constructor
 // Descriptor.generator( {generatorFunc:Function} ) => {Generator}
+
+// Returns new object with replaced descriptors
+// Descriptor.replaceAllInObject( [{deep:Boolean},] {obj:Object}, {descriptors:Array|Generator|Object} )
+// to set filtering on which descriptor to use try this:
+// descriptors = [ { filter: function ( prop, obj ) { return prop == 'test' }, descriptor: YourDescr } ]
 
 
 /* ------------ Example vars ------------- */
@@ -72,19 +80,20 @@ console.log( obj2.phrase );           // Hello mighty world!
 // Descriptor.generator can be used on whole descriptor or on any property
 
 var valueSayDescriptor = {
-    value: Descriptor.generator( function ( originValue, originObj, originProp, objProp ) {
-      return function () { return originValue.apply( originObj, arguments ) + ' world!' }
+    value: Descriptor.generator( function ( originDescr, originObj, originProp, objProp ) {
+      return function () { return originDescr.value.apply( originObj, arguments ) + ' world!' }
     }).for( 'say' ), // defining descriptor generator using property 'say' of some object
     configurable: true
   },
   getSetDescriptor = Descriptor.generator( {
-    get: function ( originGet, originObj, originProp, objProp ) {
-      return function () { return originGet.call( originObj ) + ' world!' }
+    get: function ( originDescr, originObj, originProp, objProp ) {
+      return function () { return originDescr.get.call( originObj ) + ' world!' }
     },
-    set: function ( originSet, originObj, originProp, objProp ) {
-      return function ( value ) { originSet.call( originObj, value + ' mighty' ) }
+    set: function ( originDescr, originObj, originProp, objProp ) {
+      return function ( value ) { originDescr.set.call( originObj, value + ' mighty' ) }
     },
-    configurable: function ( originConfigurable, originObj, originProp, objProp ) {
+    configurable: function ( originDescr, originObj, originProp, objProp ) {
+      var originConfigurable = originDescr.configurable;
       return originConfigurable !== undefined ? !originConfigurable : true
     }
   });

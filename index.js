@@ -1,12 +1,8 @@
 
 // TODO:
-// 1. get/set -> value replacement
-// 2. passing own properties to generator
-
+// 1. passing own properties to generator
 
 /* --------------------------------- Required Modules --------------------------------- */
-
-const Extend = require( 'extend' );
 
 const Generator = require( 'abstract-value' )( 'Generator' );
 
@@ -19,20 +15,24 @@ module.exports.get = GetDescriptor;
 
 module.exports.extend = ExtendDescriptor;
 
-module.exports.generator = CreateGenerator;
+module.exports.generator = Generator;
 
-module.exports.toObject = DescriptorToObject;
+module.exports.cloneObject = CloneObject;
+
+module.exports.toObject = DescriptorsToObject;
+
+module.exports.replaceAllInObject = ReplaceAllInObject;
 
 
 /* --------------------------------- Descriptor --------------------------------- */
 
 /**
  * Abstract class to configure descriptor ( to get final descriptor use valueOf() )
- * @param (Descriptor|Object|optional) descriptor - basic descriptor ( will be overwritten on set )
- * @param (Object|optional) originObj - this object tells that for every property ( only if function ) in descriptor final property will be generated from this function using originObj
- * Function-generator looks like ( originProp, originObj, originProp ) => {}
- * where originProp is descriptor property value in originObj
- * @param (String|optional) originProp - tells which property to take from originObj to generate ( by default is defined using for()
+ * @param (Descriptor|Object|undefined) descriptor - basic descriptor ( will be overwritten on set )
+ * @param (Object|undefined) originObj - this object tells that for every property ( only if function ) in descriptor final property will be generated from this function using originObj
+ * Function-generator looks like ( originDescriptor, originObj, originProp, objProp ) => {}
+ * where originDescriptor is descriptor of originObj[ originProp ], and objProp is property name for descriptor in new object
+ * @param (String|undefined) originProp - tells which property to take from originObj to generate ( use for( propName ) to redefine )
  * @return (Descriptor)
  */
 function Descriptor( descriptor, originObj, originProp ) {
@@ -47,7 +47,7 @@ Object.defineProperties( Descriptor.prototype, {
 
     /* ------------ Getters/Setters ------------- */
     
-    // !Getters return raw descriptor value ( to get final value use getProp() )
+    // !Getters return final descriptor value ( to get raw value use getProp( propName, true ) )
 
     get:            getterDescriptor( 'get' ),
 
@@ -66,7 +66,7 @@ Object.defineProperties( Descriptor.prototype, {
 
     /**
      * Sets new obj property descriptor
-     * @param (Object) obj - this object will aqquire new property with current descriptor
+     * @param (Object) obj - this object will acquire new property with current descriptor
      * @param (String|optional) objProp - property name
      * @return (Descriptor)
      */
@@ -192,7 +192,7 @@ Object.defineProperties( Descriptor.prototype, {
      */
     getSafeProp: {
         value: function ( prop ) {
-            return !this.__unsafePropRegExp.test( prop ) && this[ prop ] || undefined;
+            return !this.__unsafePropRegExp.test( prop ) && this.getProp( prop, true ) || undefined;
         }
     },
 
@@ -204,7 +204,7 @@ Object.defineProperties( Descriptor.prototype, {
     getOriginObj: {
         value: function ( prop ) {
             return !prop && this._originObj
-                    || this[ prop ] && this[ prop ].originObj
+                    || this.getProp( prop, true ) && this.getProp( prop, true ).originObj
                     || undefined;
         }
     },
@@ -226,7 +226,7 @@ Object.defineProperties( Descriptor.prototype, {
 
             if ( originObj ) {
                 if ( prop ) {
-                    this[ prop ].originObj = originObj;
+                    this.getProp( prop, true ).originObj = originObj;
                 } else {
                     this._originObj = originObj;
                 }
@@ -244,7 +244,7 @@ Object.defineProperties( Descriptor.prototype, {
     getOriginProp: {
         value: function ( prop ) {
             return !prop && this._originProp
-                    || this[ prop ] && this[ prop ].originProp
+                    || this.getProp( prop, true ) && this.getProp( prop, true ).originProp
                     || undefined;
         }
     },
@@ -264,7 +264,7 @@ Object.defineProperties( Descriptor.prototype, {
 
             if ( originProp ) {
                 if ( prop ) {
-                    this[ prop ].originProp = originProp;
+                    this.getProp( prop, true ).originProp = originProp;
                 } else {
                     this._originProp = originProp;
                 }
@@ -308,7 +308,7 @@ Object.defineProperties( Descriptor.prototype, {
 
     // Tells if property value is generator function
     _isGenerator: {
-        value: function ( prop ) { return this[ prop ] instanceof Generator }
+        value: function ( prop ) { return this.getProp( prop, true ) instanceof Generator }
     },
 
     // Returns final property value from generator function
@@ -335,30 +335,37 @@ Object.defineProperties( Descriptor.prototype, {
             }
 
             var originDescriptor = GetDescriptor( originObj, originProp ),
-                originDescriptorProp = originDescriptor && originDescriptor[ prop ],
+                // originDescriptorProp = originDescriptor && originDescriptor[ prop ],
                 generatorFunc = this.getProp( prop, true ).valueOf();
 
-            return generatorFunc( originDescriptorProp, originObj, originProp, objProp );
+            return generatorFunc( originDescriptor, originObj, originProp, objProp );
         }
     },
 
-    // returns originObj or its clone for descriptor property
+    // returns originObj for descriptor property
     _getOriginObj: {
         value: function ( prop ) {
             var originObj = this.getOriginObj( prop ) || this.getOriginObj();
 
-            if ( !this._asProxy ) {
+            return this._asProxy ? originObj : this._getObjClone( originObj );
+        }
+    },
 
-                if ( this.__clonedOriginObjs[ originObj ] === undefined ) {
-                    this.__clonedOriginObjs[ originObj ] = Object.create( originObj );
+    // returns obj clone ( from cache if able )
+    _getObjClone: {
+        value: function ( obj ) {
+            var index;
 
-                    Extend( true, this.__clonedOriginObjs[ originObj ], originObj );
-                }
+            if ( !~( index = this.__clonedOriginObjs.indexOf( obj ) ) ) {
+                // create and add clone to cache
+                index = this.__clonedOriginObjs.length;
 
-                originObj = this.__clonedOriginObjs[ originObj ];
+                this.__clonedOriginObjs.push( obj );
+
+                this.__originObjsClones.push( CloneObject( obj ) );
             }
 
-            return originObj;
+            return this.__originObjsClones[ index ];
         }
     },
 
@@ -369,7 +376,9 @@ Object.defineProperties( Descriptor.prototype, {
             var generator, i, allAsGenerators = false;
 
             this.__descriptor = descriptor || {};
-            this.__clonedOriginObjs = {};
+
+            this.__clonedOriginObjs = []; // array of cloned objects
+            this.__originObjsClones = []; // array of object clones
 
             if ( this.__descriptor instanceof Generator ) {
                 generator = this.__descriptor;
@@ -474,7 +483,7 @@ function _extend() {
             if ( descriptor.getProp( prop, true ) === undefined && type == 'object' ) {
                 // here we extend Descriptor complex private properties
                 result[ prop ] = 
-                    Extend(
+                    Object.assign(
                         Array.isArray( descriptor[ prop ] ) ? [] : {},
                         result[ prop ],
                         descriptor[ prop ]
@@ -513,21 +522,37 @@ function _extendSimple() {
 }
 
 
-/* --------------------------------- DescriptorToObject --------------------------------- */
+/* --------------------------------- Clone Object --------------------------------- */
+
+/**
+ * Returns object clone
+ * @param (Object) obj
+ * @return (Object)
+ */
+function CloneObject( obj ) {
+    var descriptors = {}, props = Object.getOwnPropertyNames( obj );
+
+    for ( var i = props.length; i--; ) {
+        descriptors[ props[ i ] ] = Object.getOwnPropertyDescriptor( obj, props[ i ] );
+    }
+
+    return Object.create( Object.getPrototypeOf( obj ), descriptors );
+}
+
+
+/* --------------------------------- DescriptorsToObject --------------------------------- */
 
 /**
  * Runs Object.defineProperties on new object and returns this object
  * @param (Object) propDescriptors
  * @return (Object)
  */
-function DescriptorToObject( propDescriptors ) {
-    var obj = {};
-    Object.defineProperties( obj, propDescriptors );
-    return obj;
+function DescriptorsToObject( propDescriptors ) {
+    return Object.create( Object.prototype, propDescriptors );
 }
 
 
-/* --------------------------------- CreateGenerator --------------------------------- */
+/* --------------------------------- Generator Prototype --------------------------------- */
 
 /**
  * Wraps object or function to tell about generator functions
@@ -539,7 +564,7 @@ function DescriptorToObject( propDescriptors ) {
  *      originProp - origin object property name from which originValue was given
  * @return (Generator)
  */
-function CreateGenerator( obj ) { return Generator( obj ) }
+// function Generator( obj ) {}
 
 Object.defineProperties( Generator.prototype, {
     for: {
@@ -557,12 +582,77 @@ Object.defineProperties( Generator.prototype, {
 });
 
 
+/* --------------------------------- ReplaceAllInObject --------------------------------- */
+
+/**
+ * Returns obj clone where needed obj descriptors are replaced with descriptors
+ * @param (Boolean|undefined) deep - if true - deep replace of unreplaced objects ( if not in descriptors )
+ * @param (Object) obj
+ * @param (Array|Generator|Object) descriptors
+ * e.g. [ { filter: (Function), descriptor: (Object|Generator) }, ..., descriptor ]
+ *       - filter( prop, obj ) if returns true then its descriptor will be used else go for next
+ *       - descriptor without filter will be used to all other properties
+ * @return (Object)
+ */
+function ReplaceAllInObject( deep, obj, descriptors ) {
+    if ( typeof deep == 'object' ) { descriptors = obj; obj = deep; deep = false }
+
+    if ( !Array.isArray( descriptors ) ) descriptors = [ descriptors ];
+
+    var newObj = {},
+        props = Object.getOwnPropertyNames( obj ),
+        prop, descriptor;
+
+    for ( var i = props.length; i--; ) {
+        prop = props[ i ];
+
+        if ( descriptor = getDescriptor( descriptors, prop, obj ) ) {
+
+            Descriptor( descriptor, obj, prop ).asProxy().assignTo( newObj, prop );
+
+        } else if ( deep && getType( obj[ prop ] ) == 'Object' ) {
+
+            newObj[ prop ] = ReplaceAllInObject( deep, obj[ prop ], descriptors );
+
+        }
+    }
+
+    return newObj;
+}
+// returns needed descriptor
+function getDescriptor( descriptors, prop, obj ) {
+
+    for ( var i = 0; i < descriptors.length; ++i ) {
+        if ( descriptors[ i ] instanceof Descriptor.generator ) return descriptors[ i ];
+
+        if ( typeof descriptors[ i ].filter == 'function' ) {
+            if ( descriptors[ i ].filter( prop, obj ) ) return descriptors[ i ].descriptor;
+        } else {
+            return descriptors[ i ];
+        }
+    }
+
+    return false;
+}
+
+
 /* --------------------------------- Helpers --------------------------------- */
+
+// returns obj type [ Array, Arguments, Object, Function, ... ]
+function getType( obj ) {
+    var dataType = toClass.call( obj );
+    dataType = dataType.split( ' ' )[ 1 ];
+    dataType = dataType.substring( 0, dataType.length - 1 );
+
+    return dataType;
+}
+const toClass = Object.prototype.toString;
+
 
 function getterDescriptor( prop ) {
     return {
         set: function ( value ) { this.setProp( prop, value ) },
-        get: function () { return this.getProp( prop, true ) },
+        get: function () { return this.getProp( prop ) },
         enumerable: true
     }
 }
