@@ -29,7 +29,7 @@ const Descriptor = require( 'ultimate-descriptor' );
 // Descriptor.generator( {generatorFunc:Function} ) => {Generator}
 
 // Returns new object with replaced descriptors
-// Descriptor.replaceAllInObject( [{deep:Boolean},] {obj:Object}, {descriptors:Array|Generator|Object} )
+// Descriptor.replace( [{deep:Boolean},] {obj:Object}, {descriptors:Array|Generator|Object} )
 // to set filtering on which descriptor to use try this:
 // descriptors = [ { filter: function ( prop, obj ) { return prop == 'test' }, descriptor: YourDescr } ]
 
