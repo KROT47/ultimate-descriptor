@@ -469,28 +469,27 @@ function ExtendDescriptor() {
  */
 function _extend() {
     var result = Descriptor( arguments[ 0 ] ),
-        descriptor, prop, type, resultGeneratorConfigs;
+        descriptor, propName, prop, resultGeneratorConfigs;
 
     for ( var i = 1; i < arguments.length; ++i ) {
 
         descriptor = Descriptor( arguments[ i ] );
         
+        for ( propName in descriptor ) if ( descriptor.getSafeProp( propName ) ) {
 
-        for ( prop in descriptor ) if ( descriptor.getSafeProp( prop ) ) {
+            prop = descriptor.getProp( propName, true );
 
-            type = typeof descriptor[ prop ];
-
-            if ( descriptor.getProp( prop, true ) === undefined && type == 'object' ) {
+            if ( prop === undefined && typeof descriptor[ propName ] == 'object' ) {
                 // here we extend Descriptor complex private properties
-                result[ prop ] = 
+                result[ propName ] = 
                     Object.assign(
-                        Array.isArray( descriptor[ prop ] ) ? [] : {},
-                        result[ prop ],
-                        descriptor[ prop ]
+                        Array.isArray( descriptor[ propName ] ) ? [] : {},
+                        result[ propName ],
+                        descriptor[ propName ]
                     );
 
             } else {
-                result[ prop ] = descriptor[ prop ];
+                result[ propName ] = prop;
             }
         }
     }
