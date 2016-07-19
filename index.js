@@ -21,7 +21,7 @@ module.exports.cloneObject = CloneObject;
 
 module.exports.toObject = DescriptorsToObject;
 
-module.exports.replaceAllInObject = ReplaceAllInObject;
+module.exports.replace = ReplaceAllInObject;
 
 
 /* --------------------------------- Descriptor --------------------------------- */
